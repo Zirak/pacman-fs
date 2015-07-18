@@ -42,3 +42,14 @@ func (db DB) GetPkgcache() *PkgList {
 	// XXX list_to_slice ?
 	return &PkgList{cache, db.handle}
 }
+
+func (db DB) GetProviderOf(name string) *Pkg {
+	pkgs := db.GetPkgcache().Slice()
+
+	for _, pkg := range pkgs {
+		if pkg.Provides(name) {
+			return &pkg
+		}
+	}
+	return nil
+}

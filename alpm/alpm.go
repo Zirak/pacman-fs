@@ -22,6 +22,13 @@ type Pkg struct {
 	ptr *C.alpm_pkg_t
 	handle Handle
 }
+type PkgDep struct {
+	Name string
+	Version string
+	Desc string
+	NameHash uint64
+	Mod int
+}
 type PkgList struct {
 	*List
 	handle Handle
