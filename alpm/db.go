@@ -10,41 +10,30 @@ import (
 	"unsafe"
 )
 
-func (hand Handle) GetLocalDb() (*DB, error) {
-	db := C.alpm_get_localdb(hand.ptr)
-
-	if db == nil {
-		return nil, hand.Error()
-	}
-
-	return &DB{db, hand}, nil
+type DB struct {
+	ptr *C.alpm_db_t
 }
 
-func (hand Handle) RegisterSyncDb(dbname string) (*DB, error) {
-	cdbname := C.CString(dbname)
-	defer C.free(unsafe.Pointer(cdbname))
-
-	// XXX siglevel argument
-	db := C.alpm_register_syncdb(hand.ptr, cdbname, 0)
-
-	if db == nil {
-		return nil, hand.Error()
-	}
-
-	return &DB{db, hand}, nil
-}
-
-func (db DB) GetPkgcache() *PkgList {
+func (db DB) GetPkgcache() []Pkg {
 	// This isn't pretty. get_pkgcache returns a pointer to a alpm_list.
 	//we've defined that struct, but we need to convert that pointer to it.
 
 	cache := (*List)(unsafe.Pointer(C.alpm_db_get_pkgcache(db.ptr)))
-	// XXX list_to_slice ?
-	return &PkgList{cache, db.handle}
+	pkgs := []Pkg{}
+
+	cache.ForEach(func(pkgptr unsafe.Pointer) {
+		pkg := pointerToPkg((*C.alpm_pkg_t)(pkgptr))
+		pkgs = append(pkgs, pkg)
+	})
+
+	return pkgs
 }
 
 func (db DB) GetProviderOf(name string) *Pkg {
-	pkgs := db.GetPkgcache().Slice()
+	// XXX this is horribly inefficient - we go over the entire pkg cache for
+	//every function call. Our caller, DepsDir, calls us *on every file lookup*
+	// we need to generate a cache of some kind.
+	pkgs := db.GetPkgcache()
 
 	for _, pkg := range pkgs {
 		if pkg.Provides(name) {

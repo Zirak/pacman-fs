@@ -12,8 +12,7 @@ import (
 )
 
 type InstalledDir struct {
-	handle *alpm.Handle
-	db     *alpm.DB
+	db *alpm.DB
 }
 
 var _ = fs.Node(InstalledDir{})
@@ -28,9 +27,9 @@ func (dir InstalledDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 	dirs := []fuse.Dirent{}
 
-	for _, pkg := range dir.db.GetPkgcache().Slice() {
+	for _, pkg := range dir.db.GetPkgcache() {
 		entry := fuse.Dirent{
-			Name: pkg.Name(),
+			Name: pkg.Name,
 			Type: fuse.DT_Dir,
 		}
 
@@ -48,8 +47,8 @@ func (dir InstalledDir) Lookup(ctx context.Context, name string) (fs.Node, error
 	found := false
 
 	// XXX :/
-	for _, p := range dir.db.GetPkgcache().Slice() {
-		if p.Name() == name {
+	for _, p := range dir.db.GetPkgcache() {
+		if p.Name == name {
 			pkg = p
 			found = true
 			break
@@ -71,7 +70,7 @@ type InstalledPkgDir struct {
 
 var pkgDirEntries = []fuse.Dirent{
 	{Name: "version", Type: fuse.DT_File},
-	{Name: "desc", Type: fuse.DT_File},
+	{Name: "description", Type: fuse.DT_File},
 	{Name: "size", Type: fuse.DT_File},
 	{Name: "deps", Type: fuse.DT_Dir},
 }
@@ -81,7 +80,7 @@ var _ = fs.Node(InstalledPkgDir{})
 func (dir InstalledPkgDir) Attr(ctx context.Context, attr *fuse.Attr) error {
 	log.Println("InstalledPkgDir Attr")
 	// XXX is this a good idea?
-	attr.Size = uint64(dir.pkg.InstallSize())
+	attr.Size = uint64(dir.pkg.InstallSize)
 	return GenericDirAttr(ctx, attr)
 }
 
@@ -103,13 +102,13 @@ func (dir InstalledPkgDir) Lookup(ctx context.Context, name string) (fs.Node, er
 	}
 
 	if name == "version" {
-		return StupidFile{dir.pkg.Version()}, nil
+		return StupidFile{dir.pkg.Version}, nil
 	}
-	if name == "desc" {
-		return StupidFile{dir.pkg.Desc()}, nil
+	if name == "description" {
+		return StupidFile{dir.pkg.Description}, nil
 	}
 	if name == "size" {
-		return StupidFile{strconv.FormatInt(dir.pkg.InstallSize(), 10)}, nil
+		return StupidFile{strconv.FormatInt(dir.pkg.InstallSize, 10)}, nil
 	}
 	if name == "deps" {
 		return DepsDir{dir.pkg, dir.db}, nil

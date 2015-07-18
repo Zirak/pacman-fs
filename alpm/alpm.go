@@ -14,32 +14,6 @@ import (
 type Handle struct {
 	ptr *C.alpm_handle_t
 }
-type DB struct {
-	ptr *C.alpm_db_t
-	handle Handle
-}
-type Pkg struct {
-	ptr *C.alpm_pkg_t
-	handle Handle
-}
-type PkgDep struct {
-	Name string
-	Version string
-	Desc string
-	NameHash uint64
-	Mod int
-}
-type PkgList struct {
-	*List
-	handle Handle
-}
-
-// alpm_list_t
-type List struct {
-	data unsafe.Pointer
-	prev *List
-	next *List
-}
 
 func Init() (*Handle, error) {
 	c_root := C.CString("/")
@@ -56,6 +30,30 @@ func Init() (*Handle, error) {
 	}
 
 	return &Handle{h}, nil
+}
+
+func (hand Handle) GetLocalDb() (*DB, error) {
+	db := C.alpm_get_localdb(hand.ptr)
+
+	if db == nil {
+		return nil, hand.Error()
+	}
+
+	return &DB{db}, nil
+}
+
+func (hand Handle) RegisterSyncDb(dbname string) (*DB, error) {
+	cdbname := C.CString(dbname)
+	defer C.free(unsafe.Pointer(cdbname))
+
+	// XXX siglevel argument
+	db := C.alpm_register_syncdb(hand.ptr, cdbname, 0)
+
+	if db == nil {
+		return nil, hand.Error()
+	}
+
+	return &DB{db}, nil
 }
 
 func (hand Handle) Error() error {
@@ -77,11 +75,4 @@ func (hand *Handle) Release() error {
 
 func strerror(errno C.alpm_errno_t) error {
 	return errors.New(C.GoString(C.alpm_strerror(errno)))
-}
-
-func (list *List) ForEach(callback func(unsafe.Pointer)) {
-	node := list
-	for node = list ; node != nil ; node = node.next {
-		callback(node.data)
-	}
 }

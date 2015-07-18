@@ -8,12 +8,15 @@ Aims to implement [pkgfs](https://docs.google.com/document/d/1Fi1ebe_rAq4v-JNW8i
 go run *.go path-to-mountpoint
 ```
 
-I forget what if go gets dependencies too and all that, so in case it doesn't:
+I forgot whether go gets dependencies too and all that, so in case it doesn't:
 
 ```sh
 go get bazil.org/fuse
 go get bazil.org/fuse/fs
 ```
+
+### pacman-fs in action
+[![pacman-fs in action, via asciinema](https://asciinema.org/a/e8bik65jepshaagi9thyaxjgf.png)](https://asciinema.org/a/e8bik65jepshaagi9thyaxjgf)
 
 ## Layout
 libalpm (Arch Linux Package Manager library) is what pacman serves as a frontend of. The `alpm` directory is my wrapping of (some) of its features.

@@ -7,40 +7,33 @@ package alpm
 import "C"
 
 import (
+	// "log"
 	"unsafe"
-	"log"
 )
 
-func pointerToDep(depptr *C.alpm_depend_t) PkgDep {
-	return PkgDep{
-		Name: C.GoString(depptr.name),
-		Version: C.GoString(depptr.version),
-		Desc: C.GoString(depptr.desc),
-		NameHash: uint64(depptr.name_hash),
-		Mod: int(depptr.mod),
-	}
+type Pkg struct {
+	ptr *C.alpm_pkg_t
+
+	Name        string
+	Version     string
+	Description string
+	InstallSize int64
 }
 
-// XXX inline those functions into attributes on a Pkg
-func (pkg Pkg) Name() string {
-	return C.GoString(C.alpm_pkg_get_name(pkg.ptr))
-}
-func (pkg Pkg) Version() string {
-	return C.GoString(C.alpm_pkg_get_version(pkg.ptr))
-}
-func (pkg Pkg) Desc() string {
-	return C.GoString(C.alpm_pkg_get_desc(pkg.ptr))
-}
+type PkgDep struct {
+	Name        string
+	Version     string
+	Description string
 
-func (pkg Pkg) InstallSize() int64 {
-	return int64(C.alpm_pkg_get_isize(pkg.ptr))
+	NameHash uint64
+	Mod      int
 }
 
 // In alpm, a package has a Provides section, which is "a list of packages
 //provided by the package". In other words, a package may have several names.
 // This function returns whether the package provides a given package name.
 func (pkg Pkg) Provides(name string) bool {
-	if pkg.Name() == name {
+	if pkg.Name == name {
 		return true
 	}
 
@@ -60,7 +53,7 @@ func (pkg Pkg) GetDeps() []PkgDep {
 
 	uglyDeps.ForEach(func(depptr unsafe.Pointer) {
 		dep := pointerToDep((*C.alpm_depend_t)(depptr))
-		log.Println(dep)
+		// log.Println(pkg.Name, "depends on", dep)
 		deps = append(deps, dep)
 	})
 
@@ -74,22 +67,31 @@ func (pkg Pkg) GetProvides() []PkgDep {
 
 	ugly.ForEach(func(provptr unsafe.Pointer) {
 		dep := pointerToDep((*C.alpm_depend_t)(provptr))
-		log.Println("", dep)
+		// log.Println(pkg.Name, "provides", dep)
 		provides = append(provides, dep)
 	})
 
 	return provides
 }
 
-// XXX shit ton of other functions
+func pointerToPkg(pkgptr *C.alpm_pkg_t) Pkg {
+	return Pkg{
+		ptr:         pkgptr,
 
-func (pkglist PkgList) Slice() []Pkg {
-	ret := []Pkg{}
+		Name:        C.GoString(C.alpm_pkg_get_name(pkgptr)),
+		Version:     C.GoString(C.alpm_pkg_get_version(pkgptr)),
+		Description: C.GoString(C.alpm_pkg_get_desc(pkgptr)),
+		InstallSize: int64(C.alpm_pkg_get_isize(pkgptr)),
+	}
+}
 
-	pkglist.ForEach(func(pkgptr unsafe.Pointer) {
-		pkg := Pkg{(*C.alpm_pkg_t)(pkgptr), pkglist.handle}
-		ret = append(ret, pkg)
-	})
+func pointerToDep(depptr *C.alpm_depend_t) PkgDep {
+	return PkgDep{
+		Name:        C.GoString(depptr.name),
+		Version:     C.GoString(depptr.version),
+		Description: C.GoString(depptr.desc),
 
-	return ret
+		NameHash:    uint64(depptr.name_hash),
+		Mod:         int(depptr.mod),
+	}
 }

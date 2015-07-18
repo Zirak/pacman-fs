@@ -29,10 +29,6 @@ func (dir DepsDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	dirs := []fuse.Dirent{}
 
 	for _, dep := range dir.pkg.GetDeps() {
-		if dep.Name == "sh" {
-			continue
-		}
-
 		entry := fuse.Dirent{
 			Name: dep.Name,
 			Type: fuse.DT_Dir,
@@ -56,6 +52,6 @@ func (dir DepsDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 
 	return SymlinkFile{
 		// XXX sanitation
-		"../../" + dep.Name(),
+		"../../" + dep.Name,
 	}, nil
 }

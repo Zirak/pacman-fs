@@ -47,7 +47,7 @@ func main() {
 
 	log.Println("Onwards we go!")
 
-	filesys := &FS{handle, db}
+	filesys := &FS{db}
 	err = fs.Serve(client, filesys)
 	if err != nil {
 		log.Fatal(err)
@@ -63,14 +63,13 @@ func main() {
 }
 
 type FS struct {
-	handle *alpm.Handle
-	db     *alpm.DB
+	db *alpm.DB
 }
 
 var _ fs.FS = (*FS)(nil)
 
 func (filesys FS) Root() (fs.Node, error) {
-	root := &InstalledDir{filesys.handle, filesys.db}
+	root := &InstalledDir{filesys.db}
 	return root, nil
 }
 
