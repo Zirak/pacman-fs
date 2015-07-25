@@ -21,9 +21,9 @@ go get bazil.org/fuse/fs
 ## Layout
 libalpm (Arch Linux Package Manager library) is what pacman serves as a frontend of. The `alpm` directory is my wrapping of (some) of its features.
 
-`main.go` is in charge of mounting the filesystem, along with some utility and glue work. `install-dir.go` is in charge of `/pkg/installed`, and `deps-dir.go` of a package's `deps/` directory.
+`main.go` is in charge of mounting the filesystem, along with some utility and glue work. `index-dir.go` is in charge of `/pkg/index`, `install-dir.go` is in charge of `/pkg/installed`, and `deps-dir.go` of a package's `deps/` directory.
 
 ## What's in
-- Mountpoint currently acts as `/pkg/installed`
-- Each package has a description and version files
-- Packages have a `desc` folder with symlinks to their dependencies.
+- Mountpoint acts as `/pkg`, featuring both `index/` and `installed/`!
+- Each package has a description, version and size files.
+- Packages have a `deps` folder with symlinks to their dependencies.
