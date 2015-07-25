@@ -16,7 +16,7 @@ type PointerList struct {
 
 func (list *PointerList) ForEach(callback func(unsafe.Pointer)) {
 	node := list
-	for node = list ; node != nil ; node = node.next {
+	for node = list; node != nil; node = node.next {
 		callback(node.data)
 	}
 }

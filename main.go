@@ -18,7 +18,7 @@ type DBWrapper struct {
 	// an explanation on why we use a slice pointer instead of a slice is
 	//available on Amazon for $9.99, limited Christmas edition all year round.
 	// It's also available in index-dir.go
-	sync  *[]*alpm.DB
+	sync *[]*alpm.DB
 }
 
 func main() {

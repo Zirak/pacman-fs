@@ -45,8 +45,8 @@ func (pkg Pkg) Provides(name string) bool {
 	return false
 }
 
-func (pkg Pkg) GetDeps() []PkgDep {
-	deps := []PkgDep{}
+func (pkg Pkg) GetDeps() []*PkgDep {
+	deps := []*PkgDep{}
 
 	uglyDeps := (*PointerList)(unsafe.Pointer(C.alpm_pkg_get_depends(pkg.ptr)))
 
@@ -58,8 +58,8 @@ func (pkg Pkg) GetDeps() []PkgDep {
 	return deps
 }
 
-func (pkg Pkg) GetProvides() []PkgDep {
-	provides := []PkgDep{}
+func (pkg Pkg) GetProvides() []*PkgDep {
+	provides := []*PkgDep{}
 
 	ugly := (*PointerList)(unsafe.Pointer(C.alpm_pkg_get_provides(pkg.ptr)))
 
@@ -71,11 +71,9 @@ func (pkg Pkg) GetProvides() []PkgDep {
 	return provides
 }
 
-// TODO return pointers, not structs
-
-func pointerToPkg(pkgptr *C.alpm_pkg_t) Pkg {
-	return Pkg{
-		ptr:         pkgptr,
+func pointerToPkg(pkgptr *C.alpm_pkg_t) *Pkg {
+	return &Pkg{
+		ptr: pkgptr,
 
 		Name:        C.GoString(C.alpm_pkg_get_name(pkgptr)),
 		Version:     C.GoString(C.alpm_pkg_get_version(pkgptr)),
@@ -84,13 +82,13 @@ func pointerToPkg(pkgptr *C.alpm_pkg_t) Pkg {
 	}
 }
 
-func pointerToDep(depptr *C.alpm_depend_t) PkgDep {
-	return PkgDep{
+func pointerToDep(depptr *C.alpm_depend_t) *PkgDep {
+	return &PkgDep{
 		Name:        C.GoString(depptr.name),
 		Version:     C.GoString(depptr.version),
 		Description: C.GoString(depptr.desc),
 
-		NameHash:    uint64(depptr.name_hash),
-		Mod:         int(depptr.mod),
+		NameHash: uint64(depptr.name_hash),
+		Mod:      int(depptr.mod),
 	}
 }

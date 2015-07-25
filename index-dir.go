@@ -59,7 +59,6 @@ func (dir IndexDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		return nil, fuse.ENOENT
 	}
 
-	// XXX
 	return IndexPkgDir{pkg, dir.dbs}, nil
 }
 

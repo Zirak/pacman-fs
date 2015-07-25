@@ -11,7 +11,7 @@ import (
 )
 
 type DB struct {
-	ptr *C.alpm_db_t
+	ptr  *C.alpm_db_t
 	Name string
 }
 
@@ -26,14 +26,14 @@ func (db DB) FindPackage(name string) *Pkg {
 	}
 
 	pkg := pointerToPkg(pkgptr)
-	return &pkg
+	return pkg
 }
 
-func (db DB) GetPkgcache() []Pkg {
+func (db DB) GetPkgcache() []*Pkg {
 	// This isn't pretty. get_pkgcache returns a pointer to a alpm_list.
 	//we've defined that struct, but we need to convert that pointer to it.
 	cache := (*PointerList)(unsafe.Pointer(C.alpm_db_get_pkgcache(db.ptr)))
-	pkgs := []Pkg{}
+	pkgs := []*Pkg{}
 
 	cache.ForEach(func(pkgptr unsafe.Pointer) {
 		pkg := pointerToPkg((*C.alpm_pkg_t)(pkgptr))
@@ -51,7 +51,7 @@ func (db DB) GetProviderOf(name string) *Pkg {
 
 	for _, pkg := range pkgs {
 		if pkg.Provides(name) {
-			return &pkg
+			return pkg
 		}
 	}
 	return nil

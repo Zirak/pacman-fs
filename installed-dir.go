@@ -27,7 +27,6 @@ func (dir InstalledDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 	dirs := []fuse.Dirent{}
 
-	// XXX replace with db.FindPackage
 	for _, pkg := range dir.db.GetPkgcache() {
 		entry := fuse.Dirent{
 			Name: pkg.Name,
@@ -43,26 +42,14 @@ func (dir InstalledDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 func (dir InstalledDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	log.Println("InstalledDir Lookup: " + name)
 
-	var pkg alpm.Pkg
-	// XXX
-	found := false
+	pkg := dir.db.FindPackage(name)
 
-	// XXX :/
-	// XXX alpm_db_get_pkg
-	for _, p := range dir.db.GetPkgcache() {
-		if p.Name == name {
-			pkg = p
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		log.Println("Installed: Not found")
+	if pkg == nil {
+		log.Println("InstalledDir Not found:", name)
 		return nil, fuse.ENOENT
 	}
 
-	return InstalledPkgDir{&pkg, dir.db}, nil
+	return InstalledPkgDir{pkg, dir.db}, nil
 }
 
 type InstalledPkgDir struct {
