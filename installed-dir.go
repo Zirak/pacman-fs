@@ -27,6 +27,7 @@ func (dir InstalledDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 	dirs := []fuse.Dirent{}
 
+	// XXX replace with db.FindPackage
 	for _, pkg := range dir.db.GetPkgcache() {
 		entry := fuse.Dirent{
 			Name: pkg.Name,
@@ -47,6 +48,7 @@ func (dir InstalledDir) Lookup(ctx context.Context, name string) (fs.Node, error
 	found := false
 
 	// XXX :/
+	// XXX alpm_db_get_pkg
 	for _, p := range dir.db.GetPkgcache() {
 		if p.Name == name {
 			pkg = p
@@ -68,13 +70,6 @@ type InstalledPkgDir struct {
 	db  *alpm.DB
 }
 
-var pkgDirEntries = []fuse.Dirent{
-	{Name: "version", Type: fuse.DT_File},
-	{Name: "description", Type: fuse.DT_File},
-	{Name: "size", Type: fuse.DT_File},
-	{Name: "deps", Type: fuse.DT_Dir},
-}
-
 var _ = fs.Node(InstalledPkgDir{})
 
 func (dir InstalledPkgDir) Attr(ctx context.Context, attr *fuse.Attr) error {
@@ -85,7 +80,12 @@ func (dir InstalledPkgDir) Attr(ctx context.Context, attr *fuse.Attr) error {
 }
 
 func (dir InstalledPkgDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	return pkgDirEntries, nil
+	return []fuse.Dirent{
+		{Name: "version", Type: fuse.DT_File},
+		{Name: "description", Type: fuse.DT_File},
+		{Name: "size", Type: fuse.DT_File},
+		{Name: "deps", Type: fuse.DT_Dir},
+	}, nil
 }
 
 func (dir InstalledPkgDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
@@ -111,7 +111,7 @@ func (dir InstalledPkgDir) Lookup(ctx context.Context, name string) (fs.Node, er
 		return StupidFile{strconv.FormatInt(dir.pkg.InstallSize, 10)}, nil
 	}
 	if name == "deps" {
-		return DepsDir{dir.pkg, dir.db}, nil
+		return DepsDir{dir.pkg, &[]*alpm.DB{dir.db}}, nil
 	}
 
 	return nil, fuse.ENOENT

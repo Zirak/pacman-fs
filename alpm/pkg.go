@@ -7,7 +7,6 @@ package alpm
 import "C"
 
 import (
-	// "log"
 	"unsafe"
 )
 
@@ -49,11 +48,10 @@ func (pkg Pkg) Provides(name string) bool {
 func (pkg Pkg) GetDeps() []PkgDep {
 	deps := []PkgDep{}
 
-	uglyDeps := (*List)(unsafe.Pointer(C.alpm_pkg_get_depends(pkg.ptr)))
+	uglyDeps := (*PointerList)(unsafe.Pointer(C.alpm_pkg_get_depends(pkg.ptr)))
 
 	uglyDeps.ForEach(func(depptr unsafe.Pointer) {
 		dep := pointerToDep((*C.alpm_depend_t)(depptr))
-		// log.Println(pkg.Name, "depends on", dep)
 		deps = append(deps, dep)
 	})
 
@@ -63,16 +61,17 @@ func (pkg Pkg) GetDeps() []PkgDep {
 func (pkg Pkg) GetProvides() []PkgDep {
 	provides := []PkgDep{}
 
-	ugly := (*List)(unsafe.Pointer(C.alpm_pkg_get_provides(pkg.ptr)))
+	ugly := (*PointerList)(unsafe.Pointer(C.alpm_pkg_get_provides(pkg.ptr)))
 
 	ugly.ForEach(func(provptr unsafe.Pointer) {
 		dep := pointerToDep((*C.alpm_depend_t)(provptr))
-		// log.Println(pkg.Name, "provides", dep)
 		provides = append(provides, dep)
 	})
 
 	return provides
 }
+
+// TODO return pointers, not structs
 
 func pointerToPkg(pkgptr *C.alpm_pkg_t) Pkg {
 	return Pkg{

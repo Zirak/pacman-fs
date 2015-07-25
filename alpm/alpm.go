@@ -39,7 +39,7 @@ func (hand Handle) GetLocalDb() (*DB, error) {
 		return nil, hand.Error()
 	}
 
-	return &DB{db}, nil
+	return &DB{db, "local"}, nil
 }
 
 func (hand Handle) RegisterSyncDb(dbname string) (*DB, error) {
@@ -53,7 +53,7 @@ func (hand Handle) RegisterSyncDb(dbname string) (*DB, error) {
 		return nil, hand.Error()
 	}
 
-	return &DB{db}, nil
+	return &DB{db, dbname}, nil
 }
 
 func (hand Handle) Error() error {

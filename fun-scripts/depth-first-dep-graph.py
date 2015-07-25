@@ -13,8 +13,6 @@ import networkx
 import os, os.path
 import sys
 
-from collections import defaultdict
-
 graph = networkx.Graph()
 repo = set()
 
@@ -26,7 +24,13 @@ def visit_pkg(name, path):
     print('Visting', name)
     deps_path = os.path.join(path, 'deps')
 
-    for dep in os.listdir(deps_path):
+    try:
+        deps = os.listdir(deps_path)
+    except OSError:
+        print('Fucked up dependencies:', name, file=sys.stderr)
+        return
+
+    for dep in deps:
         visit_pkg(dep, os.path.join(deps_path, dep))
         graph.add_edge(name, dep)
 
@@ -35,6 +39,6 @@ def main(mountpoint):
         visit_pkg(pkgname, os.path.join(mountpoint, pkgname))
 
 if __name__ == '__main__':
-    main('./pkg')
+    main(sys.argv[1])
     networkx.drawing.nx_pydot.write_dot(graph, '/tmp/graph')
     networkx.drawing.nx_pydot.pydot_from_networkx(graph).write_jpeg('/tmp/graph.jpeg')

@@ -14,7 +14,7 @@ import (
 
 type DepsDir struct {
 	pkg *alpm.Pkg
-	db  *alpm.DB
+	dbs *[]*alpm.DB
 }
 
 var _ = fs.Node(DepsDir{})
@@ -43,10 +43,19 @@ func (dir DepsDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 func (dir DepsDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	log.Println("DepsDir Lookup:", name)
 
-	// XXX :/ why do we have to iterate *again*?
-	dep := dir.db.GetProviderOf(name)
+	var dep *alpm.Pkg
+
+	for _, db := range *dir.dbs {
+		dep = db.GetProviderOf(name)
+
+		if dep != nil {
+			log.Println(dep.Name, "provides", name, "in db", db.Name)
+			break
+		}
+	}
 
 	if dep == nil {
+		log.Println("wtf, nothing provides", name)
 		return nil, fuse.ENOENT
 	}
 

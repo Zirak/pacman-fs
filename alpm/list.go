@@ -8,13 +8,13 @@ import "C"
 import "unsafe"
 
 // alpm_list_t
-type List struct {
+type PointerList struct {
 	data unsafe.Pointer
-	prev *List
-	next *List
+	prev *PointerList
+	next *PointerList
 }
 
-func (list *List) ForEach(callback func(unsafe.Pointer)) {
+func (list *PointerList) ForEach(callback func(unsafe.Pointer)) {
 	node := list
 	for node = list ; node != nil ; node = node.next {
 		callback(node.data)
