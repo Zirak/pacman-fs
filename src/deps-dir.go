@@ -1,9 +1,9 @@
 // Hi, I'm in charge of exposing a package's dependencies as a directory.
 
-package main
+package pacmanfs
 
 import (
-	"./alpm"
+	"../alpm"
 
 	"log"
 
@@ -45,6 +45,7 @@ func (dir DepsDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 
 	var dep *alpm.Pkg
 
+	// XXX split this off into goroutines, one for each db?
 	for _, db := range *dir.dbs {
 		dep = db.GetProviderOf(name)
 

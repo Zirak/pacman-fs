@@ -1,7 +1,7 @@
-package main
+package pacmanfs
 
 import (
-	"./alpm"
+	"../alpm"
 
 	"log"
 	"strconv"

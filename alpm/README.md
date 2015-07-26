@@ -1,0 +1,1 @@
+Hi, this is in charge of wrapping libalpm, the library behind pacman. libalpm doesn't really have any docs at all, so this was written by mostly reading [alpm.h](http://code.toofishes.net/pacman/doc/alpm_8h_source.html) and reviewing example usage by pouring over [the pacman source](https://projects.archlinux.org/pacman.git/).

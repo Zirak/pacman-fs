@@ -19,9 +19,13 @@ go get bazil.org/fuse/fs
 [![pacman-fs in action, via asciinema](https://asciinema.org/a/e8bik65jepshaagi9thyaxjgf.png)](https://asciinema.org/a/e8bik65jepshaagi9thyaxjgf)
 
 ## Layout
-libalpm (Arch Linux Package Manager library) is what pacman serves as a frontend of. The `alpm` directory is my wrapping of (some) of its features.
+`main.go` is the entry point. It's just in charge of parsing arguments and wiring our filesystem to FUSE.
 
-`main.go` is in charge of mounting the filesystem, along with some utility and glue work. `index-dir.go` is in charge of `/pkg/index`, `install-dir.go` is in charge of `/pkg/installed`, and `deps-dir.go` of a package's `deps/` directory.
+Each of the subdirectories has its own README for your pleasure, but a concise description:
+* In the `src` directory you'll find the filesystem itself, with all its directories and galore.
+* libalpm (Arch Linux Package Manager library) is what pacman serves as a frontend of. The `alpm` directory is my wrapping of (some) of its features.
+
+So far, there isn't so much to the code. I expect this will change as the project ages.
 
 ## What's in
 - Mountpoint acts as `/pkg`, featuring both `index/` and `installed/`!
