@@ -22,7 +22,7 @@ def visit_pkg(name, path):
     repo.add(name)
 
     print('Visting', name)
-    deps_path = os.path.join(path, 'deps')
+    deps_path = os.path.join(path, 'dependencies')
 
     try:
         deps = os.listdir(deps_path)

@@ -91,7 +91,7 @@ func (dir IndexPkgDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		{Name: "description", Type: fuse.DT_File},
 		{Name: "size", Type: fuse.DT_File},
 
-		{Name: "deps", Type: fuse.DT_Dir},
+		{Name: "dependencies", Type: fuse.DT_Dir},
 
 		{Name: "install", Type: fuse.DT_File},
 	}, nil
@@ -114,7 +114,7 @@ func (dir IndexPkgDir) Lookup(ctx context.Context, name string) (fs.Node, error)
 		return NewStaticFile(strconv.FormatInt(dir.pkg.InstallSize, 10)), nil
 	}
 
-	if name == "deps" {
+	if name == "dependencies" {
 		return DepsDir{dir.pkg, dir.dbs}, nil
 	}
 
