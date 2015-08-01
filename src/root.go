@@ -49,6 +49,8 @@ func (RootDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	return []fuse.Dirent{
 		{Name: "installed", Type: fuse.DT_Dir},
 		{Name: "index", Type: fuse.DT_Dir},
+
+		{Name: "sync", Type: fuse.DT_File},
 	}, nil
 }
 
@@ -61,12 +63,19 @@ func (dir RootDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		return IndexDir{dir.sync}, nil
 	}
 
+	if name == "sync" {
+		// XXX test whether we need to re-get the sync dbs after this is run
+		return NewExecutableFile(`#!/bin/sh
+pacman -Sy
+`), nil
+	}
+
 	// sshhh, don't tell anyone
 	if name == "pacman" {
-		return StupidFile{` .--.
+		return NewStaticFile(` .--.
 / _.-' .-.  .-.  .-.
 \  '-. '-'  '-'  '-'
- '--'`}, nil
+ '--'`), nil
 	}
 
 	return nil, fuse.ENOENT
@@ -98,22 +107,43 @@ func (file SymlinkFile) Readlink(ctx context.Context, req *fuse.ReadlinkRequest)
 }
 
 type StupidFile struct {
-	contents string
+	Contents string
+	Mode     os.FileMode
 }
 
 var _ = fs.Node(&StupidFile{})
 var _ = fs.HandleReadAller(&StupidFile{})
 
+func NewStaticFile(contents string) *StupidFile {
+	return &StupidFile{
+		Contents: contents,
+		Mode:     0444,
+	}
+}
+
+func NewExecutableFile(contents string) *StupidFile {
+	return &StupidFile{
+		Contents: contents,
+		Mode:     0555,
+	}
+}
+
 func (file StupidFile) Attr(ctx context.Context, attr *fuse.Attr) error {
 	log.Println("StupidFile Attr")
 
 	// XXX figure out some Inode scheme.
-	attr.Mode = 0444
-	attr.Size = uint64(len(file.contents))
+
+	if file.Mode != 0 {
+		attr.Mode = file.Mode
+	} else {
+		attr.Mode = 0444
+	}
+
+	attr.Size = uint64(len(file.Contents))
 	return nil
 }
 
 func (file StupidFile) ReadAll(ctx context.Context) ([]byte, error) {
 	log.Println("File ReadAll")
-	return []byte(file.contents), nil
+	return []byte(file.Contents), nil
 }

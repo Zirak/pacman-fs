@@ -49,6 +49,7 @@ func main() {
 		mountpoint,
 		fuse.FSName("pacman"),
 		fuse.Subtype("pacmanfs"),
+		fuse.AllowOther(),
 		fuse.ReadOnly(),
 	)
 	if err != nil {

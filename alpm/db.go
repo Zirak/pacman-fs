@@ -10,6 +10,11 @@ import (
 	"unsafe"
 )
 
+// TODO we need to figure out a DB-level caching scheme. Keeping it DB only may
+//have some limitations, with the greatest advantage being that cache
+//invalidation is substantially easier, since the DB itself is the one who
+//syncs.
+
 type DB struct {
 	ptr  *C.alpm_db_t
 	Name string

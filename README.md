@@ -31,3 +31,6 @@ So far, there isn't so much to the code. I expect this will change as the projec
 - Mountpoint acts as `/pkg`, featuring both `index/` and `installed/`!
 - Each package has a description, version and size files.
 - Packages have a `deps` folder with symlinks to their dependencies.
+- Install packages via `/pkg/index/name/install`
+- And uninstall via `/pkg/installed/name/uninstall`
+- Sync to remote with `/pkg/sync`

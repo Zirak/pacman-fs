@@ -3,6 +3,7 @@ package pacmanfs
 import (
 	"../alpm"
 
+	"fmt"
 	"log"
 	"strconv"
 
@@ -72,6 +73,7 @@ func (dir InstalledPkgDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error
 		{Name: "description", Type: fuse.DT_File},
 		{Name: "size", Type: fuse.DT_File},
 		{Name: "deps", Type: fuse.DT_Dir},
+		{Name: "uninstall", Type: fuse.DT_File},
 	}, nil
 }
 
@@ -89,16 +91,24 @@ func (dir InstalledPkgDir) Lookup(ctx context.Context, name string) (fs.Node, er
 	}
 
 	if name == "version" {
-		return StupidFile{dir.pkg.Version}, nil
+		return StupidFile{Contents: dir.pkg.Version}, nil
 	}
 	if name == "description" {
-		return StupidFile{dir.pkg.Description}, nil
+		return StupidFile{Contents: dir.pkg.Description}, nil
 	}
 	if name == "size" {
-		return StupidFile{strconv.FormatInt(dir.pkg.InstallSize, 10)}, nil
+		return StupidFile{Contents: strconv.FormatInt(dir.pkg.InstallSize, 10)}, nil
 	}
 	if name == "deps" {
 		return DepsDir{dir.pkg, &[]*alpm.DB{dir.db}}, nil
+	}
+	if name == "uninstall" {
+		return StupidFile{
+			Contents: fmt.Sprintf(`#!/bin/sh
+pacman -R '%s'
+`, dir.pkg.Name),
+			Mode: 0555,
+		}, nil
 	}
 
 	return nil, fuse.ENOENT
