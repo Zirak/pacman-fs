@@ -90,6 +90,7 @@ func (dir IndexPkgDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		{Name: "version", Type: fuse.DT_File},
 		{Name: "description", Type: fuse.DT_File},
 		{Name: "size", Type: fuse.DT_File},
+
 		{Name: "deps", Type: fuse.DT_Dir},
 
 		{Name: "install", Type: fuse.DT_File},
@@ -112,9 +113,14 @@ func (dir IndexPkgDir) Lookup(ctx context.Context, name string) (fs.Node, error)
 	if name == "size" {
 		return NewStaticFile(strconv.FormatInt(dir.pkg.InstallSize, 10)), nil
 	}
+
 	if name == "deps" {
 		return DepsDir{dir.pkg, dir.dbs}, nil
 	}
+
+	// XXX I can't find a way to find the files which will be installed by the
+	//package, for creating the `files/` directory. The Archlinux package pages
+	//have it; dirty trick?
 
 	if name == "install" {
 		return NewExecutableFile(fmt.Sprintf(`#!/bin/sh

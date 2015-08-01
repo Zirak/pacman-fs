@@ -72,7 +72,10 @@ func (dir InstalledPkgDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error
 		{Name: "version", Type: fuse.DT_File},
 		{Name: "description", Type: fuse.DT_File},
 		{Name: "size", Type: fuse.DT_File},
+
 		{Name: "deps", Type: fuse.DT_Dir},
+		{Name: "files", Type: fuse.DT_Dir},
+
 		{Name: "uninstall", Type: fuse.DT_File},
 	}, nil
 }
@@ -99,9 +102,14 @@ func (dir InstalledPkgDir) Lookup(ctx context.Context, name string) (fs.Node, er
 	if name == "size" {
 		return StupidFile{Contents: strconv.FormatInt(dir.pkg.InstallSize, 10)}, nil
 	}
+
 	if name == "deps" {
 		return DepsDir{dir.pkg, &[]*alpm.DB{dir.db}}, nil
 	}
+	if name == "files" {
+		return filesToStupidDir(dir.pkg.GetFiles()), nil
+	}
+
 	if name == "uninstall" {
 		return StupidFile{
 			Contents: fmt.Sprintf(`#!/bin/sh

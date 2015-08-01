@@ -34,3 +34,4 @@ So far, there isn't so much to the code. I expect this will change as the projec
 - Install packages via `/pkg/index/name/install`
 - And uninstall via `/pkg/installed/name/uninstall`
 - Sync to remote with `/pkg/sync`
+- Installed packages have a `files/` directory, which contains the tree of files the package installed on the filesystem.

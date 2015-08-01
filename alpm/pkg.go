@@ -71,6 +71,10 @@ func (pkg Pkg) GetProvides() []*PkgDep {
 	return provides
 }
 
+func (pkg Pkg) GetFiles() []*File {
+	return filelistToSlice(C.alpm_pkg_get_files(pkg.ptr))
+}
+
 func pointerToPkg(pkgptr *C.alpm_pkg_t) *Pkg {
 	return &Pkg{
 		ptr: pkgptr,
