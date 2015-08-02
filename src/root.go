@@ -51,6 +51,7 @@ func (RootDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		{Name: "index", Type: fuse.DT_Dir},
 
 		{Name: "sync", Type: fuse.DT_File},
+		{Name: "upgrade", Type: fuse.DT_File},
 	}, nil
 }
 
@@ -63,10 +64,28 @@ func (dir RootDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		return IndexDir{dir.sync}, nil
 	}
 
+	// XXX after sync/upgrade are run, we need to re-get the sync dbs. Otherwise
+	//the following happens:
+	// 1. mount pacman-fs
+	// 2. cat /pkg/installed/some-package/version
+	//    (let's say it's 2.0.3)
+	// 3. sync+upgrade
+	//    (some-package upgraded to 2.0.4)
+	// 4. cat /pkg/installed/some-package/version
+	//    still 2.0.3
+	// 5. fusermount -u, mount again
+	// 6. /pkg/installed/some-package/version
+	//    2.0.4
+	// this is a Pretty Big Issue.
+
 	if name == "sync" {
-		// XXX test whether we need to re-get the sync dbs after this is run
 		return NewExecutableFile(`#!/bin/sh
 pacman -Sy
+`), nil
+	}
+	if name == "upgrade" {
+		return NewExecutableFile(`#!/bin/sh
+pacman -Su
 `), nil
 	}
 
