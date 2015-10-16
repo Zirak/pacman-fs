@@ -1,27 +1,9 @@
-from __future__ import print_function
-
 import fuse
 import errno, stat
 
 # TODO should probably be removed
 import logging
 logging.basicConfig(level=logging.INFO, format='[%(created)d] %(message)s')
-
-# TODO differentiate between a "simple" route like /pkg which shouldn't handle
-#sub-children and "paternal" ones like /pkg/installed/foo/files which should
-# as it stands, all routes are "paternal"
-
-# there should also be a way to intelligently define sub-routes, as in:
-'''
-route = Route()
-route.handle('/', ...)
-
-index = Route()
-index.handle('/', ...)
-
-route.handle('/index', index)
-'''
-# instead of mashing them all in the same place
 
 class Operations(fuse.Operations):
     '''Small helper class which potentially defers read calls to read_all,
@@ -45,7 +27,7 @@ class Directory(Operations, fuse.LoggingMixIn):
     def __init__(self, **children):
         self.handlers = {}
 
-        for childname, handler in children.iteritems():
+        for childname, handler in children.items():
             self.handle(childname, handler)
 
     # "router" stuff
@@ -61,18 +43,16 @@ class Directory(Operations, fuse.LoggingMixIn):
         if not path_parts:
             return (self, ())
 
-        for i in xrange(0, len(path_parts)):
-            sub_path = path_parts[i]
+        sub_path = path_parts[0]
+        if sub_path in self.handlers:
+            handler = self.handlers[sub_path]
+            rest = path_parts[1:]
 
-            if sub_path in self.handlers:
-                handler = self.handlers[sub_path]
-                rest = path_parts[i+1:]
+            # sub-directory
+            if hasattr(handler, 'match'):
+                return handler.match(rest)
 
-                # sub-directory
-                if hasattr(handler, 'match'):
-                    return handler.match(rest)
-
-                return (handler, rest)
+            return (handler, rest)
 
         return (None, ())
 
@@ -100,7 +80,7 @@ class Directory(Operations, fuse.LoggingMixIn):
     def getattr(self, rest, *args):
         print('getattr', rest, args)
 
-        return dict(st_mode=(stat.S_IFDIR | 0755))
+        return dict(st_mode=(stat.S_IFDIR | 0o755))
 
     def readdir(self, *args):
         print('readdir', args)
@@ -111,7 +91,7 @@ class StupidFile(Operations):
         self.contents = contents
 
     def getattr(self, *args):
-        return dict(st_mode=(stat.S_IFREG | 0644),
+        return dict(st_mode=(stat.S_IFREG | 0o644),
                     st_size=len(self.contents))
 
     def read_all(self, *args):

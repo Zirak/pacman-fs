@@ -13,8 +13,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from __future__ import division
-
 from ctypes import *
 from ctypes.util import find_library
 from errno import *
@@ -40,11 +38,6 @@ except ImportError:
         newfunc.args = args
         newfunc.keywords = keywords
         return newfunc
-
-try:
-    basestring
-except NameError:
-    basestring = str
 
 class c_timespec(Structure):
     _fields_ = [('tv_sec', c_long), ('tv_nsec', c_long)]
@@ -418,7 +411,7 @@ class FUSE(object):
 
         try:
             return func(*args, **kwargs) or 0
-        except OSError, e:
+        except OSError as e:
             return -(e.errno or EFAULT)
         except:
             print_exc()
@@ -505,8 +498,9 @@ class FUSE(object):
         assert retsize <= size, \
             'actual amount read %d greater than expected %d' % (retsize, size)
 
-        data = create_string_buffer(ret, retsize)
-        memmove(buf, ret, retsize)
+        # zirak: added bytes call. hopefully it'll be okay *crosses fingers*
+        data = create_string_buffer(bytes(ret, 'utf8'), retsize)
+        memmove(buf, data, retsize)
         return retsize
 
     def write(self, path, buf, size, offset, fip):
@@ -607,7 +601,7 @@ class FUSE(object):
         for item in self.operations('readdir', path.decode(self.encoding),
                                                fip.contents.fh):
 
-            if isinstance(item, basestring):
+            if isinstance(item, str):
                 name, st, offset = item, None, 0
             else:
                 name, attrs, offset = item
@@ -764,7 +758,7 @@ class Operations(object):
 
         if path != '/':
             raise FuseOSError(ENOENT)
-        return dict(st_mode=(S_IFDIR | 0755), st_nlink=2)
+        return dict(st_mode=(S_IFDIR | 0o755), st_nlink=2)
 
     def getxattr(self, path, name, position=0):
         raise FuseOSError(ENOTSUP)
@@ -886,7 +880,7 @@ class LoggingMixIn:
         try:
             ret = getattr(self, op)(path, *args)
             return ret
-        except OSError, e:
+        except OSError as e:
             ret = str(e)
             raise
         finally:

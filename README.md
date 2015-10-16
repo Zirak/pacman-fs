@@ -5,7 +5,7 @@ Aims to implement [pkgfs](https://github.com/Zirak/pkgfs) over libalpm (pacman).
 ## Running
 
 ```sh
-python2 main.py path-to-mountpoint
+python3 main.py path-to-mountpoint
 ```
 
 ## Layout
